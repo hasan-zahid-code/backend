@@ -19,18 +19,20 @@ const adminRoute = require("./routes/admin/register");
 const getorg = require("./routes/organization/get_details");
 const file_upload = require("./routes/common/file_upload");
 const donate = require("./routes/donor/donate");
-
+const getRequestsRouter = require('./routes/organization/getRequests');
+const updateRequestStatusRouter = require('./routes/organization/updateRequestStatus');
 
 // Use Routes
 app.use("/api/donor", donorRegister);
 app.use("/api/donor", foodForm);
 app.use("/api/organization", organizationRegister);
+app.use('/api/organization', getRequestsRouter);
+app.use('/api/organization', updateRequestStatusRouter);
 app.use("/api/admin", adminRoute);
 app.use("/api", loginRoute);
 app.use("/api", getorg);
 app.use("/api", file_upload);
 app.use("/api", donate);
-
 
 
 
