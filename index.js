@@ -13,6 +13,7 @@ app.use(cors()); // Allow cross-origin requests
 // Import Routes
 const donorRegister = require("./routes/donor/register");
 const foodForm = require("./routes/donor/food_donation");
+const donation_details = require("./routes/donor/donation_details");
 const organizationRegister = require("./routes/organization/register");
 const loginRoute = require("./routes/login");
 const adminRoute = require("./routes/admin/register");
@@ -25,6 +26,7 @@ const updateRequestStatusRouter = require('./routes/organization/updateRequestSt
 // Use Routes
 app.use("/api/donor", donorRegister);
 app.use("/api/donor", foodForm);
+app.use("/api/donor", donation_details);
 app.use("/api/organization", organizationRegister);
 app.use('/api/organization', getRequestsRouter);
 app.use('/api/organization', updateRequestStatusRouter);
