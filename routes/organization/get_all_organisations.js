@@ -3,7 +3,7 @@ const supabase = require('../../supabaseClient');
 const router = express.Router();
 
 // GET endpoint to fetch all organizations
-router.get('/get_organisations', async (req, res) => {
+router.get('/get_all_organisations', async (req, res) => {
     try {
         // Fetch all organization records from the database
         const { data, error } = await supabase

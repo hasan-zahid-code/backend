@@ -17,7 +17,9 @@ const donation_details = require("./routes/donor/donation_details");
 const organizationRegister = require("./routes/organization/register");
 const loginRoute = require("./routes/login");
 const adminRoute = require("./routes/admin/register");
-const getorg = require("./routes/organization/get_details");
+const getOrgs = require("./routes/organization/get_all_organisations");
+const getOrgDet = require("./routes/organization/get_organisation_detail");
+
 const file_upload = require("./routes/common/file_upload");
 const donate = require("./routes/donor/donate");
 const getRequestsRouter = require('./routes/organization/getRequests');
@@ -32,7 +34,9 @@ app.use('/api/organization', getRequestsRouter);
 app.use('/api/organization', updateRequestStatusRouter);
 app.use("/api/admin", adminRoute);
 app.use("/api", loginRoute);
-app.use("/api", getorg);
+app.use("/api", getOrgs);
+app.use("/api", getOrgDet);
+
 app.use("/api", file_upload);
 app.use("/api", donate);
 
