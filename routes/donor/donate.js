@@ -143,90 +143,107 @@ router.post('/donate', async (req, res) => {
         // Track failed inserts
         let insertFailures = [];
 
-        // Process food donation if present
-        if (food) {
-            const { name, type, qty, pkg_type, exp_date, additional_comments } = food;
-            
-            // Validate food donation data
-            if (!name || !qty || !exp_date || !type || !pkg_type) {
+        // Process food donations if present
+        if (Array.isArray(food) && food.length > 0) {
+            for (const item of food) {
+                const { name, type, qty, pkg_type, exp_date, unit, storage, additional_comments } = item;
+
+                // Validate food donation data
                 const missingFields = [];
                 if (!name) missingFields.push('name');
                 if (!type) missingFields.push('type');
                 if (!qty) missingFields.push('qty');
                 if (!pkg_type) missingFields.push('pkg_type');
                 if (!exp_date) missingFields.push('exp_date');
-                
-                const errorMsg = `Missing required food fields: ${missingFields.join(', ')}`;
-                console.error("❌ " + errorMsg);
-                insertFailures.push(errorMsg);
-            } else {
+
+                if (missingFields.length > 0) {
+                    const errorMsg = `Missing required food fields: ${missingFields.join(', ')}`;
+                    console.error("❌ " + errorMsg);
+                    insertFailures.push(errorMsg);
+                    continue;
+                }
+
                 // Insert food donation details
-                console.log("📌 Inserting into food table...", { donation_id, donation_item_id: donationItemMap['food'] });
-                const { data: foodData, error: foodError } = await supabase
+                console.log("📌 Inserting food item into food table...", { donation_id, donation_item_id: donationItemMap['food'], item });
+                const { error: foodError } = await supabase
                     .from('food')
                     .insert([{
-                        name, qty, exp_date, additional_comments, type, pkg_type,
+                        name,
+                        type,
+                        qty,
+                        pkg_type,
+                        exp_date,
+                        unit,
+                        storage,
+                        additional_comments,
                         donation_id,
                         donation_item_id: donationItemMap['food']
-                    }])
-                    .select('*');
+                    }]);
 
                 if (foodError) {
                     console.error("❌ Food insert failed:", foodError);
                     insertFailures.push({
                         type: 'food',
+                        item,
                         message: foodError.message || String(foodError),
                         code: foodError.code,
                         details: foodError.details
                     });
                 } else {
-                    console.log("✅ Food details inserted successfully");
+                    console.log("✅ Food item inserted successfully");
                 }
             }
         }
 
-        // Process clothes donation if present
-        if (clothes) {
-            const { type, size, condition, fabric_type, qty, additional_comments } = clothes;
-            
-            // Validate clothes donation data
-            if (!qty || !size || !type || !fabric_type || !condition) {
+        // Process clothes donations if present
+        if (Array.isArray(clothes) && clothes.length > 0) {
+            for (const item of clothes) {
+                const { type, size, condition, fabric_type, qty, additional_comments } = item;
+
+                // Validate clothes donation data
                 const missingFields = [];
                 if (!type) missingFields.push('type');
                 if (!size) missingFields.push('size');
                 if (!condition) missingFields.push('condition');
                 if (!fabric_type) missingFields.push('fabric_type');
                 if (!qty) missingFields.push('qty');
-                
-                const errorMsg = `Missing required clothes fields: ${missingFields.join(', ')}`;
-                console.error("❌ " + errorMsg);
-                insertFailures.push(errorMsg);
-            } else {
+
+                if (missingFields.length > 0) {
+                    const errorMsg = `Missing required clothes fields: ${missingFields.join(', ')}`;
+                    console.error("❌ " + errorMsg);
+                    insertFailures.push(errorMsg);
+                    continue;
+                }
+
                 // Insert clothes donation details
-                console.log("📌 Inserting into clothes table...", { donation_id, donation_item_id: donationItemMap['clothes'] });
-                const { data: clothesData, error: clothesError } = await supabase
+                console.log("📌 Inserting clothes item into clothes table...", { donation_id, donation_item_id: donationItemMap['clothes'], item });
+                const { error: clothesError } = await supabase
                     .from('clothes')
                     .insert([{
-                        qty, additional_comments, type, fabric_type, size, condition,
+                        type,
+                        size,
+                        condition,
+                        fabric_type,
+                        qty,
+                        additional_comments,
                         donation_id,
                         donation_item_id: donationItemMap['clothes']
-                    }])
-                    .select('*');
+                    }]);
 
                 if (clothesError) {
                     console.error("❌ Clothes insert failed:", clothesError);
                     insertFailures.push({
                         type: 'clothes',
+                        item,
                         message: clothesError.message || String(clothesError),
                         code: clothesError.code,
                         details: clothesError.details
                     });
                 } else {
-                    console.log("✅ Clothes details inserted successfully");
+                    console.log("✅ Clothes item inserted successfully");
                 }
             }
         }
-
         // Handle partial failures - roll back entire donation if any part fails
         if (insertFailures.length > 0) {
             console.error("⚠️ Some inserts failed:", JSON.stringify(insertFailures, null, 2));
