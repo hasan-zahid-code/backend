@@ -20,7 +20,7 @@ router.get('/donation-details', async (req, res) => {
       .from('donations')
       .select(`
         *,
-        organisation (
+        organization (
           name,
           image_url
         ),

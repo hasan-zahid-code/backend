@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../../supabaseClient'); // Adjust path as needed
 
-// GET endpoint to fetch address from donors or organisation table
+// GET endpoint to fetch address from donors or organization table
 router.get('/get_address', async (req, res) => {
   const { id, context } = req.query;
 
@@ -10,7 +10,7 @@ router.get('/get_address', async (req, res) => {
     return res.status(400).json({ error: 'id and context are required' });
   }
 
-  const table = context === 'organisation' ? 'organisation'
+  const table = context === 'organization' ? 'organization'
               : context === 'donor'        ? 'donor'
               : null;
 

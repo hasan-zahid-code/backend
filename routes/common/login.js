@@ -48,7 +48,7 @@ router.post("/login", async (req, res) => {
     if (userProfile.user_type === "donor") {
       roleTable = "donor";
     } else if (userProfile.user_type === "organization") {
-      roleTable = "organisation";
+      roleTable = "organization";
     } else if (userProfile.user_type === "admin") {
       roleTable = "admin";
     }

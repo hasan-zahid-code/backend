@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../../supabaseClient'); // adjust path as needed
 
-// POST endpoint to update address field in donors or organisation table
+// POST endpoint to update address field in donors or organization table
 router.post('/update_address', async (req, res) => {
   const { id, context, location_data } = req.body;
 
@@ -11,7 +11,7 @@ router.post('/update_address', async (req, res) => {
   }
 
   try {
-    const table = context === 'organisation' ? 'organisation'
+    const table = context === 'organization' ? 'organization'
                 : context === 'donor'        ? 'donor'
                 : null;
 

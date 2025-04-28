@@ -39,7 +39,7 @@ router.post("/register", async (req, res) => {
   try {
     // Check if license number already exists
     const { data: existingOrg, error: orgError } = await supabase
-      .from("organisation")
+      .from("organization")
       .select("id")
       .eq("license_no", license_no)
       .maybeSingle();
@@ -87,9 +87,9 @@ router.post("/register", async (req, res) => {
 
     if (userInsertError) throw userInsertError;
 
-    // Insert into `organisation` table
+    // Insert into `organization` table
     const { error: orgInsertError } = await supabase
-      .from("organisation")
+      .from("organization")
       .insert([
         {
           id: uuidv4(),

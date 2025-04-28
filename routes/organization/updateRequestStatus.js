@@ -15,9 +15,9 @@ router.post('/request', async (req, res) => {
     });
   }
 
-  if (!['accepted', 'rejected'].includes(status)) {
+  if (!['in_progress', 'rejected', 'cancelled', 'picked_up', 'completed'].includes(status)) {
     return res.status(400).json({ 
-      message: 'Status must be either "accepted" or "rejected"' 
+      message: 'Status must be in_progress, rejected, cancelled, picked_up or completed' 
     });
   }
 
