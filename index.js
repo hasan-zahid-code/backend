@@ -16,11 +16,11 @@ const foodForm = require("./routes/donor/food_donation");
 const donorDonations = require('./routes/donor/my_donations');
 const donationDets = require('./routes/donor/donation_details');
 const organizationRegister = require("./routes/organization/register");
-const loginRoute = require("./routes/login");
+const loginRoute = require("./routes/common/login");
 const adminRoute = require("./routes/admin/register");
 const getOrgs = require("./routes/organization/get_all_organisations");
 const getOrgDet = require("./routes/organization/get_organisation_detail");
-
+const getProfile = require("./routes/common/get_profile")
 const file_upload = require("./routes/common/file_upload");
 const donate = require("./routes/donor/donate");
 const getRequestsRouter = require('./routes/organization/getRequests');
@@ -44,6 +44,7 @@ app.use("/api/admin", adminRoute);
 app.use("/api", loginRoute);
 app.use("/api", getOrgs);
 app.use("/api", getOrgDet);
+app.use("/api", getProfile);
 
 app.use("/api", file_upload);
 app.use("/api", donate);

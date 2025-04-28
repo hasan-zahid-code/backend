@@ -77,7 +77,7 @@ router.post("/register", async (req, res) => {
         id: userId,
         email,
         phone,
-        password: password,
+        // password: password,
         full_name: `${fname} ${lname}`,
         user_type: "donor",
         is_verified: false,
