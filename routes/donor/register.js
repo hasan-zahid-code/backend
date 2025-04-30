@@ -5,7 +5,7 @@ require("dotenv").config();
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
-  let { phone, cnic_no, email, password, fname, lname, location } = req.body;
+  let { phone, cnic_no, email, password, fname, lname } = req.body;
 
   console.log("Received donor registration request:", req.body);
 
@@ -77,7 +77,7 @@ router.post("/register", async (req, res) => {
         id: userId,
         email,
         phone,
-        // password: password,
+        password: password,
         full_name: `${fname} ${lname}`,
         user_type: "donor",
         is_verified: false,
@@ -99,7 +99,7 @@ router.post("/register", async (req, res) => {
         cnic_no,
         fname,
         lname,
-        location,
+        // location,
       },
     ]);
 
@@ -111,7 +111,7 @@ router.post("/register", async (req, res) => {
     }
 
     console.log(`Donor entry created successfully for user ${email}`);
-    res.status(201).json({ message: "Donor registered successfully" });
+    res.status(201).json({ message: "Donor registered successfully", authData });
   } catch (error) {
     console.error("Registration failed:", error.message);
     return res.status(500).json({

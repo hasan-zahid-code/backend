@@ -74,7 +74,6 @@ router.post("/register", async (req, res) => {
         id: userId,
         email,
         password,
-        password,
         phone,
         full_name: name,
         user_type: "organization",
@@ -92,7 +91,6 @@ router.post("/register", async (req, res) => {
       .from("organization")
       .insert([
         {
-          id: uuidv4(),
           user_id: userId,
           name,
           license_no,
