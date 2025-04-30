@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Step 4: Return the token received from Supabase Auth
-    console.log("[Login Successful]", { ...userProfile, ...roleData }, authData.session);
+    // console.log("[Login Successful]", { ...userProfile, ...roleData }, authData.session);
     res.status(200).json({
       message: "Login successful",
       user: { ...userProfile, ...roleData },
