@@ -27,7 +27,7 @@ const getRequestsRouter = require('./routes/organization/getRequests');
 const updateRequestStatusRouter = require('./routes/organization/updateRequestStatus');
 const update_bank_details = require('./routes/organization/update_bank_info');
 const update_address = require('./routes/common/update_address');
-const get_address = require('./routes/common/get_address_details');
+const get_address = require('./routes/common/get_address');
 const get_request_status = require('./routes/organization/get_request_status');
 
 const placesProxy = require('./routes/common/places-proxy');
