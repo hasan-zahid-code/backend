@@ -56,4 +56,36 @@ router.get('/details', async (req, res) => {
   }
 });
 
+router.get('/geocode', async (req, res) => {
+  try {
+    const { address, latlng } = req.query;
+
+    if (!address && !latlng) {
+      return res.status(400).json({ error: 'Either "address" or "latlng" query parameter is required' });
+    }
+
+    let url = '';
+    if (address) {
+      url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`;
+    } else if (latlng) {
+      url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${encodeURIComponent(latlng)}&key=${API_KEY}`;
+    }
+
+    const response = await axios.get(url);
+
+    if (response.data.status === 'OK') {
+      res.json(response.data);
+    } else {
+      res.status(400).json({
+        error: response.data.error_message || 'No results found',
+        status: response.data.status,
+      });
+    }
+  } catch (error) {
+    console.error('Error in /geocode:', error.message);
+    res.status(500).json({ error: 'Failed to fetch geocode data' });
+  }
+});
+
+
 module.exports = router;
