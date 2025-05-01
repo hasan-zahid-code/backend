@@ -29,6 +29,7 @@ const update_bank_details = require('./routes/organization/update_bank_info');
 const update_address = require('./routes/common/update_address');
 const get_address = require('./routes/common/get_address');
 const get_request_status = require('./routes/organization/get_request_status');
+const get_posts = require('./routes/organization/get_posts');
 
 const placesProxy = require('./routes/common/places-proxy');
 
@@ -52,6 +53,8 @@ app.use("/api", update_bank_details);
 app.use("/api", update_address);
 app.use("/api", get_address);
 app.use("/api", get_request_status);
+app.use("/api", get_posts);
+
 
 // places
 app.use('/api/places', placesProxy);
