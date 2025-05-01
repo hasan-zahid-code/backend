@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/donate', async (req, res) => {
     const { donor_id, org_id, status, location, donation_items } = req.body;
     let donation_id = null; // Track donation ID for rollbacks
-    
+    console.log(donation_items);
     // Request validation
     if (!donor_id || !org_id || !status) {
         console.error('Missing required fields: donor_id, org_id, status');
@@ -180,6 +180,29 @@ router.post('/donate', async (req, res) => {
                 if (clothesError) {
                     insertErrors.push(`Failed to insert clothes item: ${clothesError.message}`);
                     console.error('Failed to insert clothes item:', clothesError.message);
+                }
+            }
+            else if (category === 'others') {
+                const othersData = {
+                    description: data.description,
+                    image_urls: data.image_urls,
+                    donation_id,
+                    donation_item_id
+                };
+            
+                if (!data.description || !data.image_urls) {
+                    insertErrors.push(`Missing required other fields for item: ${JSON.stringify(data)}`);
+                    console.error('Missing required other fields:', data);
+                    continue;
+                }
+            
+                const { error: othersError } = await supabase
+                    .from('others')
+                    .insert([othersData]);
+            
+                if (othersError) {
+                    insertErrors.push(`Failed to insert other item: ${othersError.message}`);
+                    console.error('Failed to insert other item:', othersError.message);
                 }
             }
             else {
