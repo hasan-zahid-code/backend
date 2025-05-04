@@ -6,7 +6,7 @@ const router = express.Router();
 /**
  * GET /get_posts?donor_id=<optional>
  * - No donor_id → return donation_id, description, image_urls, created_at, donor info (for pending status)
- * - With donor_id → return description, image_urls, status, created_at (+ org info if status is 'approved')
+ * - With donor_id → return donation_id, description, image_urls, status, created_at (+ org info if status is valid)
  */
 router.get('/get_posts', async (req, res) => {
   const { donor_id } = req.query;
@@ -18,7 +18,7 @@ router.get('/get_posts', async (req, res) => {
         description,
         image_urls,
         created_at,
-        ${!donor_id ? 'donation_id,' : ''}
+        donation_id,
         donation_items!inner(type),
         donations!inner(
           status,
@@ -70,6 +70,7 @@ router.get('/get_posts', async (req, res) => {
       }
 
       const base = {
+        donation_id: post.donation_id,
         description: post.description,
         image_urls: post.image_urls,
         status: post.donations.status,

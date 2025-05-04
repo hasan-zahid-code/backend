@@ -29,8 +29,10 @@ const update_bank_details = require('./routes/organization/update_bank_info');
 const update_address = require('./routes/common/update_address');
 const get_address = require('./routes/common/get_address');
 const get_request_status = require('./routes/organization/get_request_status');
-const get_posts = require('./routes/organization/get_posts');
+const get_posts = require('./routes/common/get_posts');
 const accept_posts = require('./routes/organization/accept_posts');
+const delete_posts = require('./routes/donor/delete_posts');
+
 const update_image = require('./routes/common/update_image');
 
 
@@ -59,6 +61,8 @@ app.use("/api", get_address);
 app.use("/api", get_request_status);
 app.use("/api", get_posts);
 app.use("/api", accept_posts);
+app.use("/api", delete_posts);
+
 
 
 
