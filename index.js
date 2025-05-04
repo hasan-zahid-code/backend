@@ -31,6 +31,8 @@ const get_address = require('./routes/common/get_address');
 const get_request_status = require('./routes/organization/get_request_status');
 const get_posts = require('./routes/organization/get_posts');
 const accept_posts = require('./routes/organization/accept_posts');
+const update_image = require('./routes/common/update_image');
+
 
 
 const placesProxy = require('./routes/common/places-proxy');
@@ -48,8 +50,8 @@ app.use("/api", loginRoute);
 app.use("/api", getOrgs);
 app.use("/api", getOrgDet);
 app.use("/api", getProfile);
+app.use("/api", update_image);
 
-app.use("/api", file_upload);
 app.use("/api", donate);
 app.use("/api", update_bank_details);
 app.use("/api", update_address);
