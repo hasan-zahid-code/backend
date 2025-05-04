@@ -27,7 +27,9 @@ router.get('/get_posts', async (req, res) => {
           donor:donor_id(
             fname,
             lname,
-            image_url
+            image_url,
+            phone,
+            address
           ),
           organization:org_id(
             name,
@@ -61,6 +63,8 @@ router.get('/get_posts', async (req, res) => {
           donor_fname: post.donations.donor?.fname || null,
           donor_lname: post.donations.donor?.lname || null,
           donor_image_url: post.donations.donor?.image_url || null,
+          phone: post.donations.donor?.phone || null,
+          address: post.donations.donor?.address || null,
           created_at: post.created_at
         };
       }
