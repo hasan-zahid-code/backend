@@ -32,6 +32,8 @@ const get_request_status = require('./routes/organization/get_request_status');
 const get_posts = require('./routes/common/get_posts');
 const accept_posts = require('./routes/organization/accept_posts');
 const delete_posts = require('./routes/donor/delete_posts');
+const refresh_token = require('./routes/common/refresh-token');
+const change_password = require('./routes/common/change_password');
 
 const update_image = require('./routes/common/update_image');
 
@@ -53,7 +55,8 @@ app.use("/api", getOrgs);
 app.use("/api", getOrgDet);
 app.use("/api", getProfile);
 app.use("/api", update_image);
-
+app.use("/api", change_password);
+app.use("/api", refresh_token);
 app.use("/api", donate);
 app.use("/api", update_bank_details);
 app.use("/api", update_address);
