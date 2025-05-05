@@ -26,7 +26,6 @@ const file_upload = require("./routes/common/file_upload");
 const donate = require("./routes/donor/donate");
 const getRequestsRouter = require('./routes/organization/getRequests');
 const updateRequestStatusRouter = require('./routes/organization/updateRequestStatus');
-const update_bank_details = require('./routes/organization/update_bank_info');
 const update_address = require('./routes/common/update_address');
 const get_address = require('./routes/common/get_address');
 const get_request_status = require('./routes/organization/get_request_status');
@@ -35,6 +34,11 @@ const accept_posts = require('./routes/organization/accept_posts');
 const delete_posts = require('./routes/donor/delete_posts');
 const refresh_token = require('./routes/common/refresh-token');
 const change_password = require('./routes/common/change_password');
+const get_org_info = require('./routes/organization/get_org_info');
+const update_organization_info = require('./routes/organization/update_organisation_info');
+
+
+
 
 const update_image = require('./routes/common/update_image');
 
@@ -60,13 +64,16 @@ app.use("/api", update_image);
 app.use("/api", change_password);
 app.use("/api", refresh_token);
 app.use("/api", donate);
-app.use("/api", update_bank_details);
 app.use("/api", update_address);
 app.use("/api", get_address);
 app.use("/api", get_request_status);
 app.use("/api", get_posts);
 app.use("/api", accept_posts);
 app.use("/api", delete_posts);
+app.use("/api", get_org_info);
+app.use("/api", update_organization_info);
+
+
 
 
 
