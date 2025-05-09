@@ -12,11 +12,12 @@ router.post('/create_campaign', async (req, res) => {
     fundraising_type,
     fundraising_goal,
     amount,
+    amount_raised,
   } = req.body;
 
   // --- Basic required validation ---
-  if (!org_id || !name) {
-    return res.status(400).json({ message: 'org_id and name are required' });
+  if (!org_id || !name || typeof amount_raised !== 'number') {
+    return res.status(400).json({ message: 'org_id, name, and amount_raised are required' });
   }
 
   // --- Conditional validation ---
@@ -39,6 +40,7 @@ router.post('/create_campaign', async (req, res) => {
         fundraising_type,
         fundraising_goal: fundraising_type ? fundraising_goal : null,
         amount: fundraising_type ? amount : null,
+        amount_raised, // ✅ Include in DB insert
       }]);
 
     if (error) {
@@ -52,6 +54,5 @@ router.post('/create_campaign', async (req, res) => {
     return res.status(500).json({ message: 'Unexpected error occurred', error: err.message });
   }
 });
-
 
 module.exports = router;
