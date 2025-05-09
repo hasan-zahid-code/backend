@@ -8,7 +8,13 @@ router.get('/get_all_campaigns', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('campaign')
-      .select('*') // or explicitly list columns for control
+      .select(`
+        *,
+        organization (
+          name,
+          image_url
+        )
+      `);
 
     if (error) {
       console.error('❌ Error fetching campaigns:', error);
