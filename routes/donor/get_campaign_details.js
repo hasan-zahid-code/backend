@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const router = express.Router();
 
-router.get('/my-campaign-donations', async (req, res) => {
+router.get('/get_campaign_details', async (req, res) => {
     const { donor_id } = req.query;
 
     if (!donor_id) {

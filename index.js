@@ -39,6 +39,7 @@ const update_organization_info = require('./routes/organization/update_organisat
 const create_campaign = require('./routes/organization/create_campaign');
 const get_all_campaigns = require('./routes/organization/get_all_campaigns');
 const campaign_donation = require('./routes/donor/campaign_donation');
+const get_campaign_details = require('./routes/donor/get_campaign_details');
 
 
 
@@ -78,9 +79,7 @@ app.use("/api", update_organization_info);
 app.use("/api", create_campaign);
 app.use("/api", get_all_campaigns);
 app.use("/api", campaign_donation);
-
-
-
+app.use("/api", get_campaign_details);
 
 
 
