@@ -37,12 +37,12 @@ const change_password = require('./routes/common/change_password');
 const get_org_info = require('./routes/organization/get_org_info');
 const update_organization_info = require('./routes/organization/update_organisation_info');
 const create_campaign = require('./routes/organization/create_campaign');
-const get_all_campaigns = require('./routes/organization/get_all_campaigns');
+const get_all_campaigns = require('./routes/donor/get_all_campaigns');
 const campaign_donation = require('./routes/donor/campaign_donation');
 const get_campaign_details = require('./routes/donor/get_campaign_details');
 const get_total_donation_requests = require('./routes/organization/get_total_donation_requests');
 const campaign_addfunds = require('./routes/organization/campaign_addfunds');
-
+const get_org_campaigns = require('./routes/organization/get_org_campaigns');
 
 const update_image = require('./routes/common/update_image');
 
@@ -82,6 +82,9 @@ app.use("/api", campaign_donation);
 app.use("/api", get_campaign_details);
 app.use("/api", get_total_donation_requests);
 app.use("/api", campaign_addfunds);
+app.use("/api", get_org_campaigns);
+
+
 
 
 // places
