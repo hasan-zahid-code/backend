@@ -21,7 +21,14 @@ router.get('/get_all_campaigns', async (req, res) => {
       return res.status(500).json({ message: 'Failed to fetch campaigns', error });
     }
 
-    return res.status(200).json({ message: 'Campaigns retrieved successfully', data });
+    // Filter out completed campaigns
+    const filteredCampaigns = data.filter(campaign =>
+      campaign.amount_raised === null ||
+      campaign.amount === null ||
+      campaign.amount_raised < campaign.amount
+    );
+
+    return res.status(200).json({ message: 'Campaigns retrieved successfully', data: filteredCampaigns });
   } catch (err) {
     console.error('❌ Unexpected error:', err);
     return res.status(500).json({ message: 'Unexpected error occurred', error: err.message });
