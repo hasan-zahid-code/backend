@@ -45,7 +45,6 @@ const campaign_addfunds = require('./routes/organization/campaign_addfunds');
 const get_org_campaigns = require('./routes/organization/get_org_campaigns');
 const get_notifications = require('./routes/common/get_notifications');
 const update_notifications_to_read = require('./routes/common/update_notifications_to_read');
-const get_notification_description = require('./routes/common/get_notification_description');
 
 const update_image = require('./routes/common/update_image');
 
@@ -88,7 +87,6 @@ app.use("/api", campaign_addfunds);
 app.use("/api", get_org_campaigns);
 app.use("/api", get_notifications);
 app.use("/api", update_notifications_to_read);
-app.use("/api", get_notification_description);
 
 
 // places
