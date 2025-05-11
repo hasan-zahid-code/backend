@@ -34,8 +34,7 @@ router.get('/get_posts', async (req, res) => {
           organization:org_id(
             name,
             image_url,
-            latitude,
-            longitude
+            location
           )
         )
       `)

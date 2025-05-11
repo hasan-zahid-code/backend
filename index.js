@@ -53,7 +53,7 @@ app.use('/api/donor', donorDonations);
 app.use('/api/donor', donationDets);
 app.use("/api/organization", organizationRegister);
 app.use('/api/organization', getRequestsRouter);
-app.use('/api', updateRequestStatusRouter);
+app.use('/api/organization', updateRequestStatusRouter);
 app.use("/api/admin", adminRoute);
 app.use("/api", loginRoute);
 app.use("/api", getOrgs);
