@@ -25,15 +25,19 @@ router.get('/get_notifications', async (req, res) => {
       return res.status(500).json({ message: 'Failed to fetch notifications', error });
     }
 
-    const formattedData = data.map(notification => ({
-      id: notification.id,
-      type: notification.type,
-      user_type: notification.user_type,
-      status: notification.status,
-      message: notification.message,
-      metadata: notification.metadata,
-      time_ago: dayjs(notification.created_at).fromNow()
-    }));
+    const formattedData = data.map(notification => {
+      const adjustedTime = dayjs(notification.created_at).add(5, 'hour');
+      return {
+        id: notification.id,
+        type: notification.type,
+        user_type: notification.user_type,
+        status: notification.status,
+        message: notification.message,
+        metadata: notification.metadata,
+        time_ago: adjustedTime.fromNow(),
+        time_formatted: adjustedTime.format('MMMM D, h:mm A')
+      };
+    });
 
     return res.status(200).json({
       message: 'Notifications retrieved successfully',
