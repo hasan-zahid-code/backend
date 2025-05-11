@@ -43,6 +43,8 @@ const get_campaign_details = require('./routes/donor/get_campaign_details');
 const get_total_donation_requests = require('./routes/organization/get_total_donation_requests');
 const campaign_addfunds = require('./routes/organization/campaign_addfunds');
 const get_org_campaigns = require('./routes/organization/get_org_campaigns');
+const get_notifications = require('./routes/common/get_notifications');
+const update_notifications_to_read = require('./routes/common/update_notifications_to_read');
 
 const update_image = require('./routes/common/update_image');
 
@@ -83,7 +85,8 @@ app.use("/api", get_campaign_details);
 app.use("/api", get_total_donation_requests);
 app.use("/api", campaign_addfunds);
 app.use("/api", get_org_campaigns);
-
+app.use("/api", get_notifications);
+app.use("/api", update_notifications_to_read);
 
 
 
