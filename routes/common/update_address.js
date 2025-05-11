@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../../supabaseClient'); // adjust path as needed
 
-// POST endpoint to update address field in donors or organization table
+// POST endpoint to update address or location field
 router.post('/update_address', async (req, res) => {
   const { id, context, location_data } = req.body;
 
@@ -11,27 +11,35 @@ router.post('/update_address', async (req, res) => {
   }
 
   try {
-    const table = context === 'organization' ? 'organization'
-                : context === 'donor'        ? 'donor'
-                : null;
+    let table, updateField;
 
-    if (!table) {
+    if (context === 'organization') {
+      table = 'organization';
+      updateField = 'location';
+    } else if (context === 'donor') {
+      table = 'donor';
+      updateField = 'address';
+    } else {
       return res.status(400).json({ message: 'Invalid context provided' });
     }
 
-    // Update the address field with location_data
+    // Prepare the update object
+    const updateObj = {};
+    updateObj[updateField] = location_data;
+
+    // Perform the update
     const { data, error } = await supabase
       .from(table)
-      .update({ address: location_data })
+      .update(updateObj)
       .eq('id', id)
       .select();
 
     if (error) {
       console.error('Supabase update error:', error.message);
-      return res.status(500).json({ message: 'Failed to update address', error: error.message });
+      return res.status(500).json({ message: 'Failed to update address/location', error: error.message });
     }
 
-    res.status(200).json({ message: 'Address updated successfully', data });
+    res.status(200).json({ message: `${updateField} updated successfully`, data });
   } catch (err) {
     console.error('Unhandled error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
