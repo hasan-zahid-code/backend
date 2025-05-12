@@ -45,7 +45,7 @@ router.get('/get_org_posts', async (req, res) => {
     const donorIds = [...new Set(donations.map(d => d.donor_id))];
     const { data: donorsData, error: donorError } = await supabase
       .from('donor')
-      .select('id, fname, lname, phone')
+      .select('id, fname, lname, phone, image_url')
       .in('id', donorIds);
 
     if (donorError) {
@@ -68,6 +68,7 @@ router.get('/get_org_posts', async (req, res) => {
         created_at: post.created_at,
         donor_name: donor.fname && donor.lname ? `${donor.fname} ${donor.lname}` : null,
         donor_phone: donor.phone || null,
+        donor_imageurl: donor.image_url || null,
       };
     });
 
