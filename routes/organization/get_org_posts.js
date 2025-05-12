@@ -11,10 +11,10 @@ router.get('/get_org_posts', async (req, res) => {
   }
 
   try {
-    // Step 1: Get donations for this org with matching statuses
+    // Step 1: Get donations with matching org_id and statuses
     const { data: donations, error: donationError } = await supabase
       .from('donations')
-      .select('id, status')
+      .select('id, status, donor_id')
       .eq('org_id', org_id)
       .in('status', ['in_progress', 'picked_up', 'completed']);
 
@@ -28,20 +28,12 @@ router.get('/get_org_posts', async (req, res) => {
     }
 
     const donationIds = donations.map(d => d.id);
-    const donationMap = new Map(donations.map(d => [d.id, d.status]));
+    const donationMap = new Map(donations.map(d => [d.id, { status: d.status, donor_id: d.donor_id }]));
 
-    // Step 2: Join 'others' with 'donation_items' to get type as well
+    // Step 2: Fetch from 'others' table
     const { data: othersData, error: othersError } = await supabase
       .from('others')
-      .select(`
-        donation_id,
-        description,
-        image_urls,
-        created_at,
-        donation_items (
-          type
-        )
-      `)
+      .select('donation_id, description, image_urls, created_at')
       .in('donation_id', donationIds);
 
     if (othersError) {
@@ -49,17 +41,38 @@ router.get('/get_org_posts', async (req, res) => {
       return res.status(500).json({ message: 'Failed to fetch donation posts', error: othersError });
     }
 
-    const result = othersData.map(post => ({
-      donation_id: post.donation_id,
-      description: post.description,
-      image_urls: post.image_urls,
-      type: post.donation_items?.type || null,
-      status: donationMap.get(post.donation_id),
-      created_at: post.created_at,
-    }));
+    // Step 3: Get donor details (only unique donor_ids)
+    const donorIds = [...new Set(donations.map(d => d.donor_id))];
+    const { data: donorsData, error: donorError } = await supabase
+      .from('donor')
+      .select('id, fname, lname, phone')
+      .in('id', donorIds);
+
+    if (donorError) {
+      console.error('❌ Error fetching donor info:', donorError);
+      return res.status(500).json({ message: 'Failed to fetch donor info', error: donorError });
+    }
+
+    const donorMap = new Map(donorsData.map(d => [d.id, d]));
+
+    // Step 4: Enrich posts with status and donor info
+    const result = othersData.map(post => {
+      const donationInfo = donationMap.get(post.donation_id);
+      const donor = donorMap.get(donationInfo?.donor_id) || {};
+
+      return {
+        donation_id: post.donation_id,
+        description: post.description,
+        image_urls: post.image_urls,
+        status: donationInfo?.status,
+        created_at: post.created_at,
+        donor_name: donor.fname && donor.lname ? `${donor.fname} ${donor.lname}` : null,
+        donor_phone: donor.phone || null,
+      };
+    });
 
     return res.status(200).json({
-      message: 'Donation posts (type: others) retrieved successfully',
+      message: 'Donation posts retrieved successfully',
       data: result,
     });
 
