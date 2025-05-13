@@ -1,6 +1,7 @@
 const express = require('express');
 const supabase = require('../../supabaseClient');
-require('dotenv').config();
+const { createNotification } = require('../common/notificationService.js');
+
 
 const router = express.Router();
 
@@ -25,9 +26,9 @@ router.post('/donate', async (req, res) => {
         console.log('Inserting donation record...');
         const { data: donationData, error: donationError } = await supabase
             .from('donations')
-            .insert([{ 
-                donor_id, 
-                org_id, 
+            .insert([{
+                donor_id,
+                org_id,
                 status,
                 location
             }])
@@ -37,25 +38,25 @@ router.post('/donate', async (req, res) => {
         // Handle donation insertion error
         if (donationError) {
             console.error('Failed to insert donation:', donationError.message);
-            return res.status(500).json({ 
-                message: 'Failed to add donation record', 
-                error: donationError.message 
+            return res.status(500).json({
+                message: 'Failed to add donation record',
+                error: donationError.message
             });
         }
 
         donation_id = donationData.id;
         console.log('Donation record inserted, ID:', donation_id);
-        
+
         // Helper function to handle rollback if needed
         const rollbackDonation = async () => {
             if (!donation_id) return;
-            
+
             console.log('Rolling back donation record with ID:', donation_id);
             const { error: rollbackError } = await supabase
                 .from('donations')
                 .delete()
                 .eq('id', donation_id);
-                
+
             if (rollbackError) {
                 console.error(`Failed to rollback donation ${donation_id}:`, rollbackError);
             } else {
@@ -66,9 +67,9 @@ router.post('/donate', async (req, res) => {
         // Process categories from donation items
         const categories = [...new Set(donation_items.map(item => item.category))];
         console.log('Processing categories:', categories);
-        
+
         const categoryMap = {};
-        
+
         // Insert donation item categories
         for (const category of categories) {
             console.log(`Inserting category ${category}...`);
@@ -81,12 +82,12 @@ router.post('/donate', async (req, res) => {
             if (itemError) {
                 console.error(`Failed to insert ${category} category:`, itemError.message);
                 await rollbackDonation();
-                return res.status(500).json({ 
-                    message: `Failed to insert ${category} category`, 
-                    error: itemError.message 
+                return res.status(500).json({
+                    message: `Failed to insert ${category} category`,
+                    error: itemError.message
                 });
             }
-            
+
             categoryMap[category] = itemData.id;
             console.log(`Category ${category} inserted, ID:`, itemData.id);
         }
@@ -94,10 +95,10 @@ router.post('/donate', async (req, res) => {
         // Process all donation items
         let insertErrors = [];
         // console.log('Inserting donation items...');
-        
+
         for (const item of donation_items) {
             const { category, data } = item;
-            
+
             if (!category || !data) {
                 insertErrors.push(`Invalid item structure: missing category or data`);
                 console.error('Invalid item structure:', item);
@@ -105,7 +106,7 @@ router.post('/donate', async (req, res) => {
             }
 
             const donation_item_id = categoryMap[category];
-            
+
             if (!donation_item_id) {
                 insertErrors.push(`Invalid category: ${category}`);
                 console.error('Invalid category for item:', category);
@@ -127,11 +128,11 @@ router.post('/donate', async (req, res) => {
                     donation_id,
                     donation_item_id
                 };
-                
+
                 // console.log('Inserting food item with data:', foodData);
 
                 // Validate required fields
-                if (!foodData.name || !foodData.type || !foodData.qty || 
+                if (!foodData.name || !foodData.type || !foodData.qty ||
                     !foodData.pkg_type || !foodData.exp_date) {
                     insertErrors.push(`Missing required food fields for item: ${JSON.stringify(data)}`);
                     console.error('Missing required food fields:', data);
@@ -147,7 +148,7 @@ router.post('/donate', async (req, res) => {
                     insertErrors.push(`Failed to insert food item: ${foodError.message}`);
                     console.error('Failed to insert food item:', foodError.message);
                 }
-            } 
+            }
             else if (category === 'clothes') {
                 // Map clothes data to expected schema
                 const clothesData = {
@@ -161,11 +162,11 @@ router.post('/donate', async (req, res) => {
                     donation_id,
                     donation_item_id
                 };
-                
+
                 // console.log('Inserting clothes item with data:', clothesData);
 
                 // Validate required fields
-                if (!clothesData.type || !clothesData.size || !clothesData.condition || 
+                if (!clothesData.type || !clothesData.size || !clothesData.condition ||
                     !clothesData.fabric_type || !clothesData.qty) {
                     insertErrors.push(`Missing required clothes fields for item: ${JSON.stringify(data)}`);
                     console.error('Missing required clothes fields:', data);
@@ -189,17 +190,17 @@ router.post('/donate', async (req, res) => {
                     donation_id,
                     donation_item_id
                 };
-            
+
                 if (!data.description || !data.image_urls) {
                     insertErrors.push(`Missing required other fields for item: ${JSON.stringify(data)}`);
                     console.error('Missing required other fields:', data);
                     continue;
                 }
-            
+
                 const { error: othersError } = await supabase
                     .from('others')
                     .insert([othersData]);
-            
+
                 if (othersError) {
                     insertErrors.push(`Failed to insert other item: ${othersError.message}`);
                     console.error('Failed to insert other item:', othersError.message);
@@ -215,18 +216,32 @@ router.post('/donate', async (req, res) => {
         if (insertErrors.length > 0) {
             console.error('Errors during donation item insertion:', insertErrors);
             await rollbackDonation();
-            return res.status(500).json({ 
-                message: 'Failed to insert all donation items, transaction rolled back', 
+            return res.status(500).json({
+                message: 'Failed to insert all donation items, transaction rolled back',
                 errors: insertErrors
             });
         }
+
+        // Create a notification for the organization
+        const notification = await createNotification({
+            type: 'donation',
+            user_type: 'organization',
+            recipient_id: org_id,
+            metadata: {
+                donation_id,
+                donation_status: status
+            }
+        });
 
         // Success response
         // console.log('Donation processed successfully');
         res.status(201).json({
             message: 'Donation request sent successfully',
-            donation_id
+            donation_id,
+            notification
         });
+
+        
 
     } catch (error) {
         // Handle unexpected errors
@@ -240,9 +255,9 @@ router.post('/donate', async (req, res) => {
                 console.error(`Failed to rollback donation ${donation_id}:`, rollbackError);
             }
         }
-        
-        res.status(500).json({ 
-            message: 'Failed to process donation due to an unexpected error', 
+
+        res.status(500).json({
+            message: 'Failed to process donation due to an unexpected error',
             error: error.message
         });
     }

@@ -1,6 +1,6 @@
 const express = require('express');
 const supabase = require('../../supabaseClient');
-const { createNotification } = require('./notificationService.js');
+const { createNotification } = require('../common/notificationService.js');
 
 const router = express.Router();
 
@@ -10,14 +10,14 @@ router.post('/request', async (req, res) => {
 
   // Validate input
   if (!donation_id || !status) {
-    return res.status(400).json({ 
-      message: 'donation_id and status are required' 
+    return res.status(400).json({
+      message: 'donation_id and status are required'
     });
   }
 
   if (!['in_progress', 'rejected', 'cancelled', 'picked_up', 'completed'].includes(status)) {
-    return res.status(400).json({ 
-      message: 'Status must be in_progress, rejected, cancelled, picked_up or completed' 
+    return res.status(400).json({
+      message: 'Status must be in_progress, rejected, cancelled, picked_up or completed'
     });
   }
 
@@ -27,7 +27,7 @@ router.post('/request', async (req, res) => {
     // Update donation status
     const { error: updateError, data: updatedDonation } = await supabase
       .from('donations')
-      .update({ 
+      .update({
         status: status
       })
       .eq('id', donation_id)
@@ -36,29 +36,25 @@ router.post('/request', async (req, res) => {
 
     if (updateError) {
       console.error("❌ Failed to update donation:", updateError);
-      return res.status(500).json({ 
+      return res.status(500).json({
         message: 'Failed to update donation',
-        details: updateError.message || updateError 
+        details: updateError.message || updateError
       });
     }
 
     if (!updatedDonation) {
-      return res.status(404).json({ 
-        message: 'No donation found with the specified donation_id' 
+      return res.status(404).json({
+        message: 'No donation found with the specified donation_id'
       });
     }
 
-    // Create a notification for the donor
-    const notificationMessage = `Your donation has been ${status}.`;
     const notification = await createNotification({
       type: 'donation',
       user_type: 'donor',
-      message: notificationMessage,
       status: 'unread',
       recipient_id: updatedDonation.donor_id,
       metadata: {
         donation_id,
-        message: notificationMessage,
         donation_status: status
       }
     });
