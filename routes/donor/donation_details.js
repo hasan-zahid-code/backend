@@ -42,6 +42,16 @@ router.get('/donation-details', async (req, res) => {
 
     const donation = data[0];
 
+    if (donation.status === 'completed') {
+    donation.people_helped_display =
+      donation.people_helped > 0
+        ? donation.people_helped.toString()
+        : 'Not updated by the organisation';
+    } else {
+    // Remove people_helped for non-completed donations
+      delete donation.people_helped;
+    }
+
     // 2. Fetch extra data based on item types
     const enrichedItems = await Promise.all(
       donation.donation_items.map(async (item) => {
@@ -65,7 +75,7 @@ router.get('/donation-details', async (req, res) => {
         const { data: extraData, error: extraError } = await supabase
           .from(tableName)
           .select('*')
-          .eq('donation_item_id', item.id) // assumes foreign key to donation_items
+          .eq('donation_item_id', item.id);
 
         if (extraError) {
           console.warn(`Failed to fetch from ${tableName} for item ${item.id}:`, extraError.message);
