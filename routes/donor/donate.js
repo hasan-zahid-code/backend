@@ -95,7 +95,6 @@ router.post('/donate', async (req, res) => {
 
         // Process all donation items
         let insertErrors = [];
-        // console.log('Inserting donation items...');
 
         for (const item of donation_items) {
             const { category, data } = item;
@@ -130,8 +129,6 @@ router.post('/donate', async (req, res) => {
                     donation_item_id
                 };
 
-                // console.log('Inserting food item with data:', foodData);
-
                 // Validate required fields
                 if (!foodData.name || !foodData.type || !foodData.qty ||
                     !foodData.pkg_type || !foodData.exp_date) {
@@ -164,7 +161,6 @@ router.post('/donate', async (req, res) => {
                     donation_item_id
                 };
 
-                // console.log('Inserting clothes item with data:', clothesData);
 
                 // Validate required fields
                 if (!clothesData.type || !clothesData.size || !clothesData.condition ||

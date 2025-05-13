@@ -10,31 +10,51 @@ router.get('/get_stats', async (req, res) => {
   }
 
   try {
-    // Join donations + feedback for completed donations
-    const { data: feedbackData, error } = await supabase
-      .from('feedback')
-      .select(`
-        people_helped,
-        donation_id,
-        donations (
-          id,
-          status,
-          org_id
-        )
-      `)
-      .eq('donor_id', donor_id);
+    // Fetch completed donations and feedback for the donor
+    const { data: donations, error } = await supabase
+      .from('donations')
+      .select('id, org_id, status')
+      .eq('donor_id', donor_id)
+      .eq('status', 'completed');
 
-    if (error || !feedbackData) {
-      console.error('Error fetching feedback:', error);
-      return res.status(500).json({ message: 'error fetching data' });
+    if (error || !donations) {
+      console.error('Error fetching donations:', error);
+      return res.status(500).json({ message: 'Error fetching data' });
     }
 
-    // Filter feedback entries where donation is completed
-    const filtered = feedbackData.filter(entry => entry.donations?.status === 'completed');
+    // Fetch feedback for completed donations
+    const { data: feedbackData, error: feedbackError } = await supabase
+      .from('feedback')
+      .select('people_helped, donation_id')
+      .in('donation_id', donations.map(d => d.id));
 
-    const completed_donations = filtered.length;
-    const total_people_helped = filtered.reduce((sum, f) => sum + (f.people_helped || 0), 0);
-    const uniqueOrgCount = new Set(filtered.map(f => f.donations.org_id)).size;
+    if (feedbackError || !feedbackData) {
+      console.error('Error fetching feedback:', feedbackError);
+      return res.status(500).json({ message: 'Error fetching feedback data' });
+    }
+
+    // Combine donations with feedback and filter valid entries
+    const completedDonationsWithFeedback = donations.map(donation => {
+      const feedback = feedbackData.find(f => f.donation_id === donation.id);
+      return {
+        ...donation,
+        people_helped: feedback ? feedback.people_helped : 0
+      };
+    });
+
+    // Filter completed donations
+    const completed_donations = completedDonationsWithFeedback.length;
+
+    // Calculate total people helped from the feedback
+    const total_people_helped = completedDonationsWithFeedback.reduce(
+      (sum, donation) => sum + donation.people_helped,
+      0
+    );
+
+    // Count unique organizations
+    const uniqueOrgCount = new Set(
+      completedDonationsWithFeedback.map(donation => donation.org_id)
+    ).size;
 
     return res.status(200).json({
       completed_donations,
@@ -44,7 +64,7 @@ router.get('/get_stats', async (req, res) => {
 
   } catch (err) {
     console.error('Unexpected error:', err);
-    return res.status(500).json({ message: 'unexpected error' });
+    return res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
