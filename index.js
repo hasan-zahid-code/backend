@@ -49,6 +49,9 @@ const get_org_posts = require('./routes/organization/get_org_posts');
 const update_people_helped = require('./routes/organization/update_people_helped');
 const get_stats = require('./routes/donor/get_stats');
 const get_feedback = require('./routes/donor/get_feedback');
+const verify_donations = require('./routes/organization/verify_donations');
+
+
 
 
 
@@ -97,6 +100,7 @@ app.use("/api", get_org_posts);
 app.use("/api", update_people_helped);
 app.use("/api", get_stats);
 app.use("/api", get_feedback);
+app.use("/api", verify_donations);
 
 
 
