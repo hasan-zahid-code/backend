@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/donate', async (req, res) => {
     const { donor_id, org_id, status, location, donation_items } = req.body;
+    
     let donation_id = null; // Track donation ID for rollbacks
     console.log(donation_items);
     // Request validation
@@ -223,22 +224,22 @@ router.post('/donate', async (req, res) => {
         }
 
         // Create a notification for the organization
-        const notification = await createNotification({
-            type: 'donation',
-            user_type: 'organization',
-            recipient_id: org_id,
-            metadata: {
-                donation_id,
-                donation_status: status
-            }
-        });
+        // const notification = await createNotification({
+        //     type: 'donation',
+        //     user_type: 'organization',
+        //     recipient_id: org_id,
+        //     metadata: {
+        //         donation_id,
+        //         donation_status: status
+        //     }
+        // });
 
         // Success response
         // console.log('Donation processed successfully');
         res.status(201).json({
             message: 'Donation request sent successfully',
             donation_id,
-            notification
+            // notification
         });
 
         
