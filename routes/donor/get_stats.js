@@ -10,21 +10,31 @@ router.get('/get_stats', async (req, res) => {
   }
 
   try {
-    // Fetch completed donations for the donor
-    const { data: donations, error } = await supabase
-      .from('donations')
-      .select('org_id, people_helped')
-      .eq('donor_id', donor_id)
-      .eq('status', 'completed');
+    // Join donations + feedback for completed donations
+    const { data: feedbackData, error } = await supabase
+      .from('feedback')
+      .select(`
+        people_helped,
+        donation_id,
+        donations (
+          id,
+          status,
+          org_id
+        )
+      `)
+      .eq('donor_id', donor_id);
 
-    if (error || !donations) {
-      console.error('Error fetching donations:', error);
+    if (error || !feedbackData) {
+      console.error('Error fetching feedback:', error);
       return res.status(500).json({ message: 'error fetching data' });
     }
 
-    const completed_donations = donations.length;
-    const total_people_helped = donations.reduce((sum, d) => sum + (d.people_helped || 0), 0);
-    const uniqueOrgCount = new Set(donations.map(d => d.org_id)).size;
+    // Filter feedback entries where donation is completed
+    const filtered = feedbackData.filter(entry => entry.donations?.status === 'completed');
+
+    const completed_donations = filtered.length;
+    const total_people_helped = filtered.reduce((sum, f) => sum + (f.people_helped || 0), 0);
+    const uniqueOrgCount = new Set(filtered.map(f => f.donations.org_id)).size;
 
     return res.status(200).json({
       completed_donations,
