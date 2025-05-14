@@ -1,15 +1,14 @@
 
 const supabase = require('../../supabaseClient');
-
 /**
- * Creates a generalized notification with dynamic context
+ * Creates a generalized notification with schema-aligned constraints.
  * @param {Object} options - Notification configuration
- * @param {string} options.type - Type of notification (donation, request, etc.)
- * @param {string} [options.user_type] - User type (donor, organization, admin)
- * @param {uuid} [options.recipient_id] - Specific recipient ID
- * @param {string} [options.message] - Optional custom message
- * @param {Object} [options.metadata] - Contextual data (must include donation_id for donation-type)
- * @param {string} [options.status='unread'] - Notification status
+ * @param {string} options.type - One of: donation, request, system, alert, message, update, reminder
+ * @param {string} [options.user_type] - One of: donor, organization, admin, system
+ * @param {uuid} [options.recipient_id] - User/org/admin ID
+ * @param {string} [options.message] - Custom message
+ * @param {Object} [options.metadata] - Context data (e.g., donation_id)
+ * @param {string} [options.status='unread'] - One of: unread, read, important, archived
  * @returns {Promise} Supabase insert result
  */
 async function createNotification({
@@ -26,23 +25,28 @@ async function createNotification({
   }
 
   const allowedTypes = [
-    'donation', 'request', 'system', 'alert',
-    'message', 'update', 'reminder'
+    'donation', 'request', 'system', 'alert', 'message', 'update', 'reminder'
   ];
+  const allowedUserTypes = ['donor', 'organization', 'admin', 'system'];
+  const allowedStatuses = ['unread', 'read', 'important', 'archived'];
 
   if (!allowedTypes.includes(type)) {
-    throw new Error(`Invalid notification type. Allowed types: ${allowedTypes.join(', ')}`);
+    throw new Error(`Invalid type. Must be one of: ${allowedTypes.join(', ')}`);
   }
 
-  let dynamicMessage = message;
+  if (user_type && !allowedUserTypes.includes(user_type)) {
+    throw new Error(`Invalid user_type. Must be one of: ${allowedUserTypes.join(', ')}`);
+  }
+
+  if (!allowedStatuses.includes(status)) {
+    throw new Error(`Invalid status. Must be one of: ${allowedStatuses.join(', ')}`);
+  }
 
   try {
-    let donationData = null;
-    let userData = null;
-    let orgData = null;
+    let dynamicMessage = message;
 
+    // Donation-specific message logic
     if (type === 'donation' && metadata.donation_id) {
-      // 1. Fetch Donation
       const { data: donation, error: donationError } = await supabase
         .from('donations')
         .select('id, status, donor_id, org_id')
@@ -52,67 +56,46 @@ async function createNotification({
       if (donationError || !donation) {
         throw new Error(`Failed to retrieve donation: ${donationError?.message}`);
       }
-      donationData = donation;
 
-      // 2. Fetch Donor
-      if (donation.donor_id) {
-        const { data: donor, error: userError } = await supabase
-          .from('users')
-          .select('id, fname, lname')
-          .eq('id', donation.donor_id)
-          .single();
+      const { data: donor, error: donorError } = await supabase
+        .from('donor')
+        .select('id, fname, lname')
+        .eq('id', donation.donor_id)
+        .single();
 
-        if (userError || !donor) {
-          throw new Error(`Failed to retrieve donor: ${userError?.message}`);
-        }
-        userData = donor;
-      }
+      const { data: org, error: orgError } = await supabase
+        .from('organization')
+        .select('id, name')
+        .eq('id', donation.org_id)
+        .single();
 
-      // 3. Fetch Organization
-      if (donation.org_id) {
-        const { data: org, error: orgError } = await supabase
-          .from('organizations')
-          .select('id, name')
-          .eq('id', donation.org_id)
-          .single();
-
-        if (orgError || !org) {
-          throw new Error(`Failed to retrieve organization: ${orgError?.message}`);
-        }
-        orgData = org;
-      }
-
-      // 4. Generate Dynamic Message
-      const status = donation.status;
-      const donorName = userData?.fname || 'Donor';
-      const orgName = orgData?.name || 'the organization';
+      const donorName = donor?.fname || 'Donor';
+      const orgName = org?.name || 'the organization';
+      const donationStatus = donation.status;
 
       const statusMessages = {
         in_progress: `${donorName}, your donation is now being processed by ${orgName}.`,
         rejected: `Sorry ${donorName}, your donation was rejected by ${orgName}.`,
-        cancelled: `Your donation has been cancelled. If this was unintentional, you can submit a new request.`,
-        picked_up: `Your donation was picked up by ${orgName}. Thank you for your generosity!`,
-        completed: `Your donation has been successfully completed. ${orgName} appreciates your help!`
+        cancelled: `Your donation has been cancelled.`,
+        picked_up: `Your donation was picked up by ${orgName}. Thank you!`,
+        completed: `Your donation is complete. ${orgName} appreciates your help!`
       };
 
-      dynamicMessage = message || statusMessages[status] || `Your donation status is now: ${status}`;
-      recipient_id = recipient_id || donation.donor_id;
+      dynamicMessage = message || statusMessages[donationStatus] || `Your donation status is now: ${donationStatus}`;
 
-      const notifications = [];
+      const notifications = [
+        {
+          type,
+          user_type: 'donor',
+          recipient_id: donation.donor_id,
+          message: dynamicMessage,
+          status,
+          metadata: JSON.stringify(metadata),
+          created_at: new Date().toISOString()
+        }
+      ];
 
-      // 5. Create Donor Notification
-      notifications.push({
-        type,
-        user_type: 'donor',
-        recipient_id: donation.donor_id,
-        message: dynamicMessage,
-        status,
-        metadata: JSON.stringify(metadata),
-        created_at: new Date().toISOString()
-      });
-
-      // 6. Create Organization Notification on donor cancellation
-      if (status === 'cancelled' && donation.org_id) {
+      if (donationStatus === 'cancelled' && donation.org_id) {
         notifications.push({
           type,
           user_type: 'organization',
@@ -129,44 +112,38 @@ async function createNotification({
         .insert(notifications)
         .select();
 
-      if (error) {
-        console.error('❌ Notification creation error:', error);
-        throw error;
-      }
-
-      console.log(`✅ ${notifications.length} notification(s) created for donation ${donation.id}`);
-      return data;
-    } else {
-      // Fallback generic notification
-      const notificationPayload = {
-        type,
-        user_type,
-        recipient_id,
-        message: dynamicMessage || 'New notification',
-        status,
-        metadata: JSON.stringify(metadata),
-        created_at: new Date().toISOString()
-      };
-
-      const { data, error } = await supabase
-        .from('notification')
-        .insert(notificationPayload)
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('❌ Notification creation error:', error);
-        throw error;
-      }
-
-      console.log(`✅ Notification created for ${type}`);
+      if (error) throw error;
+      console.log(`✅ ${notifications.length} notification(s) created`);
       return data;
     }
+
+    // Generic notification fallback
+    const payload = {
+      type,
+      user_type,
+      recipient_id,
+      message: dynamicMessage || 'New notification',
+      status,
+      metadata: JSON.stringify(metadata),
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('notification')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    console.log(`✅ Notification created for ${type}`);
+    return data;
   } catch (err) {
-    console.error('❌ Unexpected notification creation error:', err);
+    console.error('❌ Notification creation failed:', err.message);
     throw err;
   }
 }
+
 
 
 /**
