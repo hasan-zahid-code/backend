@@ -10,11 +10,11 @@ router.get('/verify_donations', async (req, res) => {
   }
 
   try {
-    // Fetch donations related to the provided campaign_id
+    // Fetch all donations for the given campaign_id (no status filter)
     const { data: donations, error } = await supabase
       .from('donations')
       .select(`
-        id, donor_id, acc_statement_img,
+        id, donor_id, acc_statement_img, status,
         donation_items (amount_donated),
         campaign_id
       `)
@@ -25,33 +25,32 @@ router.get('/verify_donations', async (req, res) => {
       return res.status(500).json({ message: 'Error fetching donations' });
     }
 
-    // Get donor details (fname, lname) for each donation
+    // Enrich with donor details
     const donorPromises = donations.map(async (donation) => {
       const { data: donorData, error: donorError } = await supabase
         .from('donor')
-        .select('fname, lname')
+        .select('fname, lname, image_url')
         .eq('id', donation.donor_id)
         .single();
 
       if (donorError) {
-        console.warn(`Failed to fetch donor details for donation ${donation.id}:`, donorError.message);
+        console.warn(`Failed to fetch donor for donation ${donation.id}:`, donorError.message);
         return null;
       }
 
-      // Get the amount donated from donation_items for this specific donation
-      const amountDonated = donation.donation_items[0]?.amount_donated || 0; // Assuming only one item for simplicity
+      const amountDonated = donation.donation_items[0]?.amount_donated || 0;
 
       return {
+        donation_id: donation.id,
         donor_full_name: `${donorData.fname} ${donorData.lname}`,
+        donor_image_url: donorData.image_url || null,
         acc_statement_img: donation.acc_statement_img,
         amount_donated: amountDonated,
+        status: donation.status, // ✅ Include status
       };
     });
 
-    // Wait for all donor data to be fetched
     const donorDetails = await Promise.all(donorPromises);
-
-    // Filter out any failed donor data fetches
     const validDonorDetails = donorDetails.filter(detail => detail !== null);
 
     return res.status(200).json({
