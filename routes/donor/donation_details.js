@@ -7,7 +7,6 @@ const router = express.Router();
 router.get('/donation-details', async (req, res) => {
   const { donationId } = req.query;
 
-  console.log('GET /donation-details called with:', { donationId });
 
   if (!donationId) {
     console.warn('Missing donationId');
@@ -101,7 +100,6 @@ router.get('/donation-details', async (req, res) => {
 
     donation.donation_items = enrichedItems;
 
-    console.log(`Fetched donation with ID "${donationId}"`);
 
     res.status(200).json({
       message: 'Donation details fetched successfully',

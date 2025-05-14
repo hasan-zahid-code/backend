@@ -8,11 +8,8 @@ router.post("/change-password", async (req, res) => {
   const { current_password, new_password } = req.body;
   const token = req.headers.authorization?.replace("Bearer ", "");
 
-  console.log("🔐 Incoming /change-password request");
-  console.log("🟡 Body:", req.body);
 
   if (!token) {
-    console.error("❌ Unauthorized: No token provided");
     return res.status(401).json({ error: "Unauthorized: No token provided" });
   }
 
@@ -28,7 +25,6 @@ router.post("/change-password", async (req, res) => {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    console.log("✅ User fetched:", user.email);
 
     // (Optional) Re-authenticate
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -41,7 +37,6 @@ router.post("/change-password", async (req, res) => {
       return res.status(400).json({ error: "Current password is incorrect" });
     }
 
-    console.log("🔐 Current password verified");
 
     // Update password
     const { error: updateError } = await supabase.auth.updateUser(
@@ -54,11 +49,9 @@ router.post("/change-password", async (req, res) => {
       return res.status(400).json({ error: updateError.message });
     }
 
-    console.log("✅ Password updated successfully");
     res.json({ message: "Password updated successfully" });
 
   } catch (err) {
-    console.error("❌ Unexpected server error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

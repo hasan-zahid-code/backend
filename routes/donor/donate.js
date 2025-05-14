@@ -9,7 +9,6 @@ router.post('/donate', async (req, res) => {
     const { donor_id, org_id, status, location, donation_items } = req.body;
 
     let donation_id = null; // Track donation ID for rollbacks
-    console.log(donation_items);
     // Request validation
     if (!donor_id || !org_id || !status) {
         console.error('Missing required fields: donor_id, org_id, status');
@@ -24,7 +23,6 @@ router.post('/donate', async (req, res) => {
 
     try {
         // Insert donation record
-        console.log('Inserting donation record...');
         const { data: donationData, error: donationError } = await supabase
             .from('donations')
             .insert([{
@@ -46,13 +44,11 @@ router.post('/donate', async (req, res) => {
         }
 
         donation_id = donationData.id;
-        console.log('Donation record inserted, ID:', donation_id);
 
         // Helper function to handle rollback if needed
         const rollbackDonation = async () => {
             if (!donation_id) return;
 
-            console.log('Rolling back donation record with ID:', donation_id);
             const { error: rollbackError } = await supabase
                 .from('donations')
                 .delete()
@@ -67,13 +63,11 @@ router.post('/donate', async (req, res) => {
 
         // Process categories from donation items
         const categories = [...new Set(donation_items.map(item => item.category))];
-        console.log('Processing categories:', categories);
 
         const categoryMap = {};
 
         // Insert donation item categories
         for (const category of categories) {
-            console.log(`Inserting category ${category}...`);
             const { data: itemData, error: itemError } = await supabase
                 .from('donation_items')
                 .insert([{ donation_id, type: category }])
@@ -90,7 +84,6 @@ router.post('/donate', async (req, res) => {
             }
 
             categoryMap[category] = itemData.id;
-            console.log(`Category ${category} inserted, ID:`, itemData.id);
         }
 
         // Process all donation items
@@ -244,7 +237,6 @@ router.post('/donate', async (req, res) => {
 
         if (donation_id) {
             try {
-                console.log('Rolling back donation record due to unexpected error');
                 await supabase.from('donations').delete().eq('id', donation_id);
             } catch (rollbackError) {
                 console.error(`Failed to rollback donation ${donation_id}:`, rollbackError);
