@@ -115,7 +115,6 @@ router.get('/get_notifications', async (req, res) => {
 
     const enrichedNotifications = await Promise.all(
       data.map(async (notification) => {
-        const adjustedTime = dayjs(notification.created_at).add(5, 'hour');
 
         const donation_id = (() => {
           try {
@@ -132,8 +131,8 @@ router.get('/get_notifications', async (req, res) => {
           status: notification.status,
           message: notification.message,
           metadata: notification.metadata, // raw string
-          time_ago: adjustedTime.fromNow(),
-          time_formatted: adjustedTime.format('MMMM D, h:mm A')
+          time_ago: dayjs(notification.created_at).fromNow(),
+          time_formatted: dayjs(notification.created_at).format('MMMM D, h:mm A')
         };
 
         if (!donation_id || !notification.user_type) {
