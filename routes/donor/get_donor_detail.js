@@ -6,7 +6,6 @@ const router = express.Router();
 router.get('/get_donor_detail', async (req, res) => {
     const { id } = req.query;
 
-    console.log('[GET] /get_donor_detail - id:', req.query);
 
     if (!id) {
         console.error('Missing "id" in query parameters');
@@ -14,7 +13,6 @@ router.get('/get_donor_detail', async (req, res) => {
     }
 
     try {
-        console.log(`Fetching donor with ID: ${id}`);
 
         const { data, error } = await supabase
             .from('donor')
@@ -32,7 +30,6 @@ router.get('/get_donor_detail', async (req, res) => {
             return res.status(404).json({ message: 'donor not found' });
         }
 
-        console.log('donor data retrieved:', data.id);
 
         res.status(200).json({ message: 'donor retrieved successfully', data });
     } catch (error) {

@@ -7,7 +7,6 @@ const router = express.Router();
 router.get('/donation-details', async (req, res) => {
   const { donationId } = req.query;
 
-  console.log('GET /donation-details called with:', { donationId });
 
   if (!donationId) {
     console.warn('Missing donationId');
@@ -42,22 +41,33 @@ router.get('/donation-details', async (req, res) => {
 
     const donation = data[0];
 
+    // 2. If status is completed, fetch people_helped from feedback
     if (donation.status === 'completed') {
-    donation.people_helped_display =
-      donation.people_helped > 0
-        ? donation.people_helped.toString()
-        : 'Not updated by the organisation';
+      const { data: feedback, error: feedbackError } = await supabase
+        .from('feedback')
+        .select('people_helped')
+        .eq('donation_id', donationId)
+        .single();
+
+      if (feedbackError) {
+        console.warn('Feedback fetch error:', feedbackError.message);
+        donation.people_helped_display = 'Not updated by the organisation';
+      } else {
+        donation.people_helped_display =
+          feedback.people_helped > 0
+            ? feedback.people_helped.toString()
+            : 'Not updated by the organisation';
+      }
     } else {
-    // Remove people_helped for non-completed donations
+      // Remove people_helped for non-completed donations
       delete donation.people_helped;
     }
 
-    // 2. Fetch extra data based on item types
+    // 3. Fetch extra data based on item types
     const enrichedItems = await Promise.all(
       donation.donation_items.map(async (item) => {
         let tableName;
 
-        // determine which table to query
         switch (item.type) {
           case 'food':
             tableName = 'food';
@@ -88,10 +98,8 @@ router.get('/donation-details', async (req, res) => {
       })
     );
 
-    // Replace donation_items with enriched version
     donation.donation_items = enrichedItems;
 
-    console.log(`Fetched donation with ID "${donationId}"`);
 
     res.status(200).json({
       message: 'Donation details fetched successfully',

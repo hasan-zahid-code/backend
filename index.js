@@ -50,8 +50,7 @@ const update_people_helped = require('./routes/organization/update_people_helped
 const get_stats = require('./routes/donor/get_stats');
 const get_feedback = require('./routes/donor/get_feedback');
 const verify_donations = require('./routes/organization/verify_donations');
-
-
+const update_campaign_donation = require('./routes/organization/update_campaign_donation');
 
 
 
@@ -101,7 +100,7 @@ app.use("/api", update_people_helped);
 app.use("/api", get_stats);
 app.use("/api", get_feedback);
 app.use("/api", verify_donations);
-
+app.use("/api", update_campaign_donation);
 
 
 

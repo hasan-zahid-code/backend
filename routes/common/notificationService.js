@@ -113,7 +113,6 @@ async function createNotification({
         .select();
 
       if (error) throw error;
-      console.log(`✅ ${notifications.length} notification(s) created`);
       return data;
     }
 
@@ -136,7 +135,6 @@ async function createNotification({
 
     if (error) throw error;
 
-    console.log(`✅ Notification created for ${type}`);
     return data;
   } catch (err) {
     console.error('❌ Notification creation failed:', err.message);

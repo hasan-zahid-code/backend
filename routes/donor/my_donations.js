@@ -7,7 +7,6 @@ const router = express.Router();
 router.get('/my-donations', async (req, res) => {
     const { donor_id } = req.query;
 
-    console.log('GET /my-donations called with:', { donor_id });
 
     if (!donor_id) {
         console.warn('Missing donor_id');
@@ -34,7 +33,6 @@ router.get('/my-donations', async (req, res) => {
             throw error;
         }
 
-        console.log(`Found ${data.length} donations for donor_id "${donor_id}"`);
 
         res.status(200).json({
             message: 'Donations with donor, organization, and item types fetched successfully',

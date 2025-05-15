@@ -7,7 +7,6 @@ router.post('/:user/:userid/profile-image', async (req, res) => {
   const { user, userid } = req.params;
   const { profileImage } = req.body;
 
-  console.log('Incoming profile-image request id: ',userid);
 
   if (!userid || !profileImage) {
     return res.status(400).json({ message: 'userid and profileImage are required' });
@@ -32,7 +31,6 @@ router.post('/:user/:userid/profile-image', async (req, res) => {
       console.error('Supabase update error:', error.message);
       return res.status(500).json({ message: 'Failed to update profile image', error: error.message });
     }
-    // console.log('Profile image updated:', data);
 
     res.status(200).json({ message: 'Profile image updated successfully', data });
   } catch (err) {

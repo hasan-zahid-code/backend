@@ -9,7 +9,6 @@ router.get("/profile/:id", async (req, res) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.replace("Bearer ", "") || req.query.token;
 
-    console.log("\n🔹 [Fetch profile attempt]", id);
 
     if (!token) {
         return res.status(401).json({
@@ -60,7 +59,6 @@ router.get("/profile/:id", async (req, res) => {
 
         let roleData = {};
         if (roleTable) {
-            console.log(`🔍 [Step 3] Fetching additional details from '${roleTable}' table...`);
             const { data, error } = await supabase
                 .from(roleTable)
                 .select("*")

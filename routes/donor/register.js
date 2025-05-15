@@ -7,7 +7,6 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   let { phone, cnic_no, email, password, fname, lname } = req.body;
 
-  console.log("Received donor registration request:", req.body);
 
   // Validate required fields
   const missingFields = [];
@@ -29,7 +28,6 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    console.log("Checking if email exists:", email);
 
     // Check if email already exists
     const { data: existingUser, error: userError } = await supabase
@@ -52,7 +50,6 @@ router.post("/register", async (req, res) => {
     }
 
     // Create user in Supabase Auth
-    console.log("Creating user in Supabase Auth...");
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -66,12 +63,10 @@ router.post("/register", async (req, res) => {
     });
 
     if (authError) throw authError;
-    console.log("User created in Supabase Auth successfully.");
 
     const userId = authData.user.id;
 
     // Insert into `users` table
-    console.log("Inserting into users table...");
     const { error: userInsertError } = await supabase.from("users").insert([
       {
         id: userId,
@@ -88,10 +83,8 @@ router.post("/register", async (req, res) => {
     ]);
 
     if (userInsertError) throw userInsertError;
-    console.log("User inserted into database successfully.");
 
     // Insert into `donor` table
-    console.log("Inserting into donor table...");
     const { error: donorInsertError } = await supabase.from("donor").insert([
       {
         user_id: userId,
@@ -110,7 +103,6 @@ router.post("/register", async (req, res) => {
       throw donorInsertError;
     }
 
-    console.log(`Donor entry created successfully for user ${email}`);
     res.status(201).json({ message: "Donor registered successfully", authData });
   } catch (error) {
     console.error("Registration failed:", error.message);
