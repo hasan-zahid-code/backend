@@ -37,6 +37,20 @@ router.post("/register", async (req, res) => {
   }
 
   try {
+    // Check if phone number already exists
+    const { data: existingPhone, error: phoneError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("phone", phone)
+      .maybeSingle();
+
+    if (phoneError) throw phoneError;
+    if (existingPhone) {
+      return res
+        .status(400)
+        .json({ message: "Phone number already registered" });
+    }
+
     // Check if license number already exists
     const { data: existingOrg, error: orgError } = await supabase
       .from("organization")
